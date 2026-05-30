@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>StockTrends &mdash; Yahoo Finance + X</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="/static/css/style.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<!-- ── Navbar ─────────────────────────────────────────────────────────────── -->
+<nav class="navbar px-4 py-3">
+  <div class="d-flex align-items-center gap-2">
+    <i class="bi bi-graph-up-arrow fs-4 text-accent"></i>
+    <span class="fw-bold fs-5">StockTrends</span>
+    <span class="badge-mock ms-1">Mock X Data</span>
+  </div>
+  <div class="search-wrapper">
+    <i class="bi bi-search search-icon"></i>
+    <input type="text" id="searchInput" class="form-control search-input"
+           placeholder="Ticker symbol (AAPL, TSLA&hellip;)" autocomplete="off" spellcheck="false">
+    <button class="btn btn-accent" id="searchBtn">Search</button>
+  </div>
+</nav>
+
+<!-- ── Main layout ────────────────────────────────────────────────────────── -->
+<div class="container-fluid px-4 py-3">
+  <div class="row g-3">
+
+    <!-- Trending sidebar -->
+    <div class="col-lg-2 col-md-3">
+      <div class="card h-100">
+        <div class="card-header">
+          <i class="bi bi-fire text-orange me-1"></i>Trending
+        </div>
+        <div id="trendingList" class="p-2">
+          <div class="loading-spinner"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: stock info + chart -->
+    <div class="col-lg-7 col-md-9">
+
+      <!-- Welcome state -->
+      <div id="welcomeState" class="card text-center py-5">
+        <div class="display-1 mb-3">&#128200;</div>
+        <h5 class="text-muted">Search a stock ticker to get started</h5>
+        <p class="text-muted small mb-0">e.g. AAPL &nbsp;&middot;&nbsp; TSLA &nbsp;&middot;&nbsp; NVDA &nbsp;&middot;&nbsp; MSFT</p>
+      </div>
+
+      <!-- Stock panel -->
+      <div id="stockPanel" class="d-none">
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+              <div>
+                <h3 class="mb-0" id="stockName">&mdash;</h3>
+                <span class="text-muted" id="stockTicker">&mdash;</span>
+                <span class="badge bg-secondary ms-2" id="stockSector">&mdash;</span>
+              </div>
+              <div class="text-end">
+                <div class="fs-2 fw-bold" id="stockPrice">&mdash;</div>
+                <div class="fs-5" id="stockChange">&mdash;</div>
+              </div>
+            </div>
+            <div class="row g-2 mt-3" id="stockMetrics"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="mb-0 text-muted">Price History</h6>
+              <div class="btn-group btn-group-sm" id="timeframeButtons">
+                <button class="btn btn-outline-secondary" data-tf="1d">1D</button>
+                <button class="btn btn-outline-secondary" data-tf="1w">1W</button>
+                <button class="btn btn-outline-secondary active" data-tf="1m">1M</button>
+                <button class="btn btn-outline-secondary" data-tf="3m">3M</button>
+                <button class="btn btn-outline-secondary" data-tf="1y">1Y</button>
+              </div>
+            </div>
+            <canvas id="priceChart" height="110"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Error state -->
+      <div id="errorState" class="d-none card text-center py-5">
+        <div class="display-1 mb-3">&#9888;&#65039;</div>
+        <h5 id="errorMessage" class="text-danger">Error loading stock data</h5>
+      </div>
+
+    </div>
+
+    <!-- Right: sentiment + tweets -->
+    <div class="col-lg-3">
+      <div class="card mb-3">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <span><i class="bi bi-twitter-x me-1"></i>X Sentiment</span>
+          <span class="badge-mock">Mock</span>
+        </div>
+        <div id="sentimentPanel" class="card-body text-center py-4">
+          <p class="text-muted small mb-0">Search a stock to see sentiment</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <i class="bi bi-people me-1"></i>Influencer Mentions
+        </div>
+        <div id="tweetsFeed" class="p-2">
+          <p class="text-muted small text-center py-3 mb-0">No data yet</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

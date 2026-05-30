@@ -1,0 +1,245 @@
+:root {
+  --bg:          #0d1117;
+  --bg-card:     #161b22;
+  --bg-header:   #1c2128;
+  --bg-item:     #0d1117;
+  --border:      #30363d;
+  --text:        #e6edf3;
+  --muted:       #8b949e;
+  --accent:      #58a6ff;
+  --green:       #3fb950;
+  --red:         #f85149;
+  --orange:      #e3b341;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  min-height: 100vh;
+}
+
+/* ── Navbar ─────────────────────────────────────────────── */
+.navbar {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.text-accent  { color: var(--accent) !important; }
+.text-orange  { color: var(--orange) !important; }
+.text-muted   { color: var(--muted)  !important; }
+
+/* ── Mock badge ─────────────────────────────────────────── */
+.badge-mock {
+  display: inline-block;
+  background: rgba(88,166,255,.12);
+  color: var(--accent);
+  border: 1px solid rgba(88,166,255,.3);
+  font-size: .7rem;
+  font-weight: 600;
+  padding: .2em .65em;
+  border-radius: 20px;
+  vertical-align: middle;
+  letter-spacing: .02em;
+}
+
+/* ── Search ──────────────────────────────────────────────── */
+.search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+.search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--muted);
+  pointer-events: none;
+  font-size: .9rem;
+}
+.search-input {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding-left: 34px;
+  width: 260px;
+  border-radius: 8px;
+  font-size: .9rem;
+}
+.search-input::placeholder { color: var(--muted); }
+.search-input:focus {
+  background: var(--bg);
+  border-color: var(--accent);
+  color: var(--text);
+  box-shadow: 0 0 0 3px rgba(88,166,255,.15);
+  outline: none;
+}
+.btn-accent {
+  background: var(--accent);
+  color: #0d1117;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: .42rem 1rem;
+  font-size: .88rem;
+  transition: background .15s;
+}
+.btn-accent:hover { background: #79c0ff; color: #0d1117; }
+
+/* ── Cards ───────────────────────────────────────────────── */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.card-header {
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 600;
+  padding: 9px 14px;
+  border-radius: 10px 10px 0 0;
+}
+
+/* ── Price colors ────────────────────────────────────────── */
+.price-up   { color: var(--green); }
+.price-down { color: var(--red);   }
+
+/* ── Key metric cards ────────────────────────────────────── */
+.metric-card {
+  background: var(--bg-item);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 13px;
+}
+.metric-label {
+  font-size: .68rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  margin-bottom: 2px;
+}
+.metric-value {
+  font-size: .95rem;
+  font-weight: 600;
+}
+
+/* ── Trending list ───────────────────────────────────────── */
+.trending-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 7px 9px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background .13s;
+  margin-bottom: 2px;
+}
+.trending-item:hover { background: var(--bg-item); }
+.trending-ticker { font-weight: 700; font-size: .88rem; }
+.trending-name   { font-size: .7rem; color: var(--muted); }
+
+/* ── Sentiment gauge ─────────────────────────────────────── */
+.sentiment-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 0 4px;
+}
+.sentiment-badge {
+  font-size: 1.15rem;
+  font-weight: 700;
+  padding: 7px 22px;
+  border-radius: 20px;
+}
+.sentiment-bullish {
+  background: rgba(63,185,80,.13);
+  color: var(--green);
+  border: 1px solid rgba(63,185,80,.3);
+}
+.sentiment-bearish {
+  background: rgba(248,81,73,.13);
+  color: var(--red);
+  border: 1px solid rgba(248,81,73,.3);
+}
+.sentiment-neutral {
+  background: rgba(139,148,158,.13);
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.sentiment-bar {
+  width: 100%;
+  height: 9px;
+  border-radius: 9px;
+  overflow: hidden;
+  display: flex;
+}
+.bar-bull    { background: var(--green); }
+.bar-bear    { background: var(--red);   }
+.bar-neutral { background: var(--muted); }
+
+/* ── Tweet cards ─────────────────────────────────────────── */
+#tweetsFeed {
+  max-height: 430px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+.tweet-card {
+  background: var(--bg-item);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 11px;
+  margin-bottom: 7px;
+}
+.tweet-handle { font-weight: 700; font-size: .83rem; color: var(--accent); }
+.tweet-meta   { font-size: .7rem;  color: var(--muted); }
+.tweet-text   { font-size: .82rem; line-height: 1.45; margin: 4px 0; }
+.tweet-dot {
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+/* ── Chart ───────────────────────────────────────────────── */
+canvas { border-radius: 6px; }
+
+/* ── Timeframe button group ──────────────────────────────── */
+.btn-group .btn-outline-secondary {
+  border-color: var(--border);
+  color: var(--muted);
+  font-size: .8rem;
+  padding: .25rem .6rem;
+}
+.btn-group .btn-outline-secondary:hover,
+.btn-group .btn-outline-secondary.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #0d1117;
+}
+
+/* ── Spinner ─────────────────────────────────────────────── */
+.loading-spinner {
+  width: 26px; height: 26px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin .65s linear infinite;
+  margin: 22px auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .search-input { width: 170px; }
+  .navbar { flex-direction: column; gap: 10px; padding: 12px 16px; }
+}
