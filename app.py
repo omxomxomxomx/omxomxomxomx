@@ -2,12 +2,25 @@ from flask import Flask, render_template, jsonify
 import yfinance as yf
 from datetime import datetime
 import random
-from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import os
+import json
+import anthropic
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
-analyzer = SentimentIntensityAnalyzer()
+_anthropic_client = None
 
-# ─── Mock X/Twitter data ───────────────────────────────────────────────────
+
+def get_anthropic_client():
+    global _anthropic_client
+    if _anthropic_client is None:
+        _anthropic_client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY"))
+    return _anthropic_client
+
+
+# ─── Mock X/Twitter data ──────────────────────────────────────────────
 # To switch to live X data:
 #   pip install tweepy
 #   Set X_BEARER_TOKEN in your .env file
@@ -58,9 +71,78 @@ MOCK_TWEET_TEMPLATES = {
     ],
 }
 
+SENTIMENT_SYSTEM_PROMPT = """\
+You are a financial sentiment analyst specializing in social media and stock market discussions.
+
+Analyze each tweet about stocks and return a JSON array where each element has:
+- "index": the tweet index (0-based)
+- "sentiment": one of "bullish", "bearish", or "neutral"
+- "compound_score": a float from -1.0 (most bearish) to +1.0 (most bullish)
+
+Financial context rules:
+- "diamond hands" / "holding" / "not selling" → bullish
+- "to the moon" / "sending it" / "apes together" → bullish
+- "dip buying" / "accumulating" / "adding" → bullish
+- "taking profits" / "trimming" → slightly bearish
+- "adding to short position" / "shorting" / "puts" → bearish
+- "bag holding" / "bagholding" → bearish (stuck in a losing position)
+- "weak hands" / "paper hands selling" → slightly bullish (others selling seen as opportunity)
+- Sarcasm like "great earnings lol" or "totally not a bubble 🙄" → bearish
+- Technical terms: "breakout" / "higher highs" → bullish; "distribution" / "lower lows" → bearish
+- "overvalued" / "macro headwinds" / "guidance soft" → bearish
+- "fundamentals solid" / "long-term conviction" → bullish
+
+Return ONLY a valid JSON array, no explanation, no markdown code fences.\
+"""
+
+
+def analyze_sentiment_with_claude(ticker: str, posts: list) -> list:
+    """
+    Sends all posts to Claude in one API call and populates 'sentiment' and
+    'compound_score' on each post. Falls back to keyword scoring if API fails.
+    """
+    texts = [p["text"] for p in posts]
+    numbered = "\n".join(f"{i}. {t}" for i, t in enumerate(texts))
+    user_msg = f"Ticker: ${ticker}\n\nTweets:\n{numbered}"
+
+    try:
+        client = get_anthropic_client()
+        response = client.messages.create(
+            model="claude-haiku-4-5",
+            max_tokens=512,
+            system=[
+                {
+                    "type": "text",
+                    "text": SENTIMENT_SYSTEM_PROMPT,
+                    "cache_control": {"type": "ephemeral"},
+                }
+            ],
+            messages=[{"role": "user", "content": user_msg}],
+        )
+        results = json.loads(response.content[0].text)
+        for item in results:
+            idx = item["index"]
+            posts[idx]["sentiment"] = item["sentiment"]
+            posts[idx]["compound_score"] = round(float(item["compound_score"]), 3)
+    except Exception:
+        # Fallback: simple keyword scoring if Claude is unavailable
+        for post in posts:
+            text_lower = post["text"].lower()
+            if any(w in text_lower for w in ["strong", "beat", "loading", "solid", "accumulate", "buying"]):
+                post["sentiment"] = "bullish"
+                post["compound_score"] = 0.5
+            elif any(w in text_lower for w in ["overvalued", "selling", "soft", "caution", "bearish", "headwinds"]):
+                post["sentiment"] = "bearish"
+                post["compound_score"] = -0.5
+            else:
+                post["sentiment"] = "neutral"
+                post["compound_score"] = 0.0
+
+    return posts
+
 
 def generate_mock_tweets(ticker: str, change_pct: float) -> list:
-    """Returns mock X posts. Swap body for tweepy calls to use live data."""
+    """Returns mock X posts with Claude-powered sentiment. Swap body for tweepy calls to use live data."""
     random.seed(hash(ticker + str(datetime.now().date())))
 
     if change_pct > 1.5:
@@ -73,8 +155,8 @@ def generate_mock_tweets(ticker: str, change_pct: float) -> list:
     tweets = []
     used_influencers = []
     for _ in range(8):
-        sentiment = random.choices(["bullish", "bearish", "neutral"], weights=weights)[0]
-        text = random.choice(MOCK_TWEET_TEMPLATES[sentiment]).format(ticker=f"${ticker}")
+        sentiment_template = random.choices(["bullish", "bearish", "neutral"], weights=weights)[0]
+        text = random.choice(MOCK_TWEET_TEMPLATES[sentiment_template]).format(ticker=f"${ticker}")
 
         remaining = [i for i in MOCK_INFLUENCERS if i not in used_influencers]
         if not remaining:
@@ -84,25 +166,25 @@ def generate_mock_tweets(ticker: str, change_pct: float) -> list:
 
         likes = random.randint(20, 8000)
         retweets = random.randint(1, max(1, likes // 4))
-        score = analyzer.polarity_scores(text)
 
         tweets.append({
             "handle":         influencer["handle"],
             "followers":      influencer["followers"],
             "verified":       influencer["verified"],
             "text":           text,
-            "sentiment":      sentiment,
-            "compound_score": round(score["compound"], 3),
+            "sentiment":      sentiment_template,
+            "compound_score": 0.0,
             "likes":          likes,
             "retweets":       retweets,
             "time_ago":       f"{random.randint(1, 23)}h ago",
         })
 
+    tweets = analyze_sentiment_with_claude(ticker, tweets)
     tweets.sort(key=lambda t: t["likes"], reverse=True)
     return tweets
 
 
-# ─── Routes ────────────────────────────────────────────────────────────────
+# ─── Routes ───────────────────────────────────────────────────────
 
 @app.route("/")
 def index():
